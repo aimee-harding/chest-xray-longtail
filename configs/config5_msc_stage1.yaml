@@ -1,0 +1,52 @@
+# Config 5: simplified Multi-label Supervised Contrastive loss (MSC, Audibert et al. 2024), Stage 1
+# "Simplified" = label prototypes + beta repulsion weighting, WITHOUT the momentum memory queue.
+experiment:
+  name: "config5_msc_stage1"
+  description: "Configuration 5: balanced multi-label supervised contrastive pre-training (no queue), stage 1"
+  stage: "stage1"
+
+data:
+  data_dir: "/datasets/aharding/chest_xray14"
+  num_workers: 8
+  val_frac: 0.1
+  seed: 42
+
+model:
+  backbone: "densenet121"
+  num_classes: 14
+  pretrained: true
+
+training:
+  epochs: 80                 # paper: 80 epochs of contrastive pre-training
+  batch_size: 64             # same as Configs 1-4
+  sampling: "instance_balanced"
+  grad_clip: 1.0             # paper: gradient clipping at 1
+
+  optimizer:                 # kept the same as Configs 1-4 for a controlled comparison
+    type: "adam"
+    lr: 0.0001
+    weight_decay: 0.0001
+
+  scheduler:
+    type: "cosine"           # paper: cosine scheduler
+    min_lr: 0.0
+
+  loss:
+    type: "msc"
+    temperature: 0.1         # paper: tau = 0.1
+    beta: 0.1                # paper: beta = 0.1
+    embed_dim: 256           # paper: projection dim d = 256
+    use_prototypes: true
+    no_finding_as_label: true
+
+  probe:                     # online linear probe on detached features (checkpoint selection only)
+    lr: 0.001
+    weight_decay: 0.0
+
+  early_stopping:
+    patience: 80             # = epochs, i.e. disabled (full cosine schedule, as in the paper)
+    monitor: "val_auc_macro"
+
+output:
+  save_dir: "/home-mscluster/aharding/chest_xray_longtail/outputs/config5_msc_stage1"
+  save_best: true

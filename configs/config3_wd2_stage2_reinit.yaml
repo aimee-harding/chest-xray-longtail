@@ -1,0 +1,47 @@
+#config 3: BCE + WD, wd = 0.001
+experiment:
+  name: "config3_wd2_stage2_reinit"
+  description: "Configuration 3: weight decay = 0.005, stage 2"
+  stage: "stage2"
+  # Path to the best Stage 1 checkpoint to load backbone weights from
+  stage1_checkpoint: "/home-mscluster/aharding/chest_xray_longtail/outputs/config3_wd2_stage1/checkpoint_best.pt"
+
+data:
+  data_dir: "/datasets/aharding/chest_xray14"
+  num_workers: 8
+  val_frac: 0.1
+  seed: 42
+
+model:
+  reinit_classifier: true
+  backbone: "densenet121"
+  num_classes: 14
+  pretrained: false # weights loaded from stage1 checkpoint, not ImageNet
+
+training:
+  epochs: 30
+  batch_size: 64
+  sampling: "class_aware" # oversample tail classes — key Stage 2 mechanism
+
+  optimizer:
+    type: "adam"
+    lr: 0.0001
+    weight_decay: 0.0001
+
+  scheduler:
+    type: "plateau"
+    patience: 5
+    factor: 0.1
+    min_lr: 0.000001
+
+  loss:
+    type: "bce"
+    use_pos_weight: false # class-aware sampling handles imbalance instead
+
+  early_stopping:
+    patience: 10
+    monitor: "val_auc_macro"
+
+output:
+  save_dir: "/home-mscluster/aharding/chest_xray_longtail/outputs/config3_wd2_stage2_reinit"
+  save_best: true

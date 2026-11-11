@@ -1,0 +1,46 @@
+# Linear Probe Config — BCE Baseline
+
+experiment:
+  name: "linear_probe_bce"
+  description: "Linear probe on Stage 1 BCE backbone"
+  stage: "linear_probe"
+  stage1_checkpoint: "/home-mscluster/aharding/chest_xray_longtail/outputs/stage1_bce/checkpoint_best.pt"
+
+data:
+  data_dir: "/datasets/aharding/chest_xray14"
+  num_workers: 8
+  val_frac: 0.1
+  seed: 42
+
+model:
+  backbone: "densenet121"
+  num_classes: 14
+  pretrained: false
+
+training:
+  epochs: 20 # probe converges fast — 20 epochs is enough
+  batch_size: 64
+  sampling: "instance_balanced"
+
+  optimizer:
+    type: "adam"
+    lr: 0.001 # higher LR fine here — only a single linear layer
+    weight_decay: 0.0
+
+  scheduler:
+    type: "plateau"
+    patience: 3
+    factor: 0.1
+    min_lr: 0.000001
+
+  loss:
+    type: "bce"
+    use_pos_weight: false
+
+  early_stopping:
+    patience: 5
+    monitor: "val_auc_macro"
+
+output:
+  save_dir: "/home-mscluster/aharding/chest_xray_longtail/outputs/linear_probe_bce"
+  save_best: false # probe weights not needed after evaluation

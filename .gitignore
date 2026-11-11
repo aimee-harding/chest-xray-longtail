@@ -1,0 +1,24 @@
+# data and model files
+data/
+*.pt
+*.pth
+*.npy
+*.npz
+outputs/**/predictions/
+# keep small result files, ignore the rest of outputs
+outputs/*
+!outputs/test_eval/
+outputs/test_eval/*
+!outputs/test_eval/*.csv
+!outputs/test_eval/*.json
+# logs and tooling
+logs/
+wandb/
+*.log
+*.out
+__pycache__/
+*.pyc
+*.bak*
+.DS_Store
+.ipynb_checkpoints/
+*.zip
